@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
+import { type NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // можно оставлять пустым или добавлять только валидные опции
 };
 
 export default nextConfig;
