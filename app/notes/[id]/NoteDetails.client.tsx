@@ -1,31 +1,21 @@
 "use client";
 
-import { useQuery, DehydratedState } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { fetchNoteById } from "../../../lib/api";
-import { Note } from "../../../types/note";
+import css from "./details.module.css"; // Скопируйте из репозитория стилей
 
 interface NoteDetailsClientProps {
-  id: number; // теперь id всегда number
-  initialData: DehydratedState;
+  id: string;
 }
 
-export default function NoteDetailsClient({
-  id,
-  initialData,
-}: NoteDetailsClientProps) {
-  // Ищем данные в dehydrated
-  const initialNote = initialData?.queries?.find(
-    (q) => q.queryKey[0] === "note" && q.queryKey[1] === id
-  )?.state?.data as Note | undefined;
-
+export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
   const {
     data: note,
     isLoading,
     error,
-  } = useQuery<Note>({
+  } = useQuery({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
-    initialData: initialNote,
     staleTime: 1000 * 60,
   });
 
@@ -33,10 +23,14 @@ export default function NoteDetailsClient({
   if (error || !note) return <p>Something went wrong.</p>;
 
   return (
-    <div>
-      <h2>{note.title}</h2>
-      <p>{note.content}</p>
-      <p>{note.createdAt}</p>
+    <div className={css.container}>
+      <div className={css.item}>
+        <div className={css.header}>
+          <h2>{note.title}</h2>
+        </div>
+        <p className={css.content}>{note.content}</p>
+        <p className={css.date}>{note.createdAt}</p>
+      </div>
     </div>
   );
 }

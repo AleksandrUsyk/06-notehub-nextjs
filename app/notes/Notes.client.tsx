@@ -1,77 +1,61 @@
-// "use client";
-
-// import { useQuery, DehydratedState } from "@tanstack/react-query";
-// import { fetchNotes } from "../../lib/api";
-// import { Note } from "../../types/note";
-
-// interface NotesClientProps {
-//   initialData: DehydratedState;
-// }
-
-// export default function NotesClient({ initialData }: NotesClientProps) {
-//   const initialNotes = initialData?.queries?.find(
-//     (q) => q.queryKey[0] === "notes"
-//   )?.state?.data as Note[] | undefined;
-
-//   const { data, isLoading, error } = useQuery({
-//     queryKey: ["notes"],
-//     queryFn: fetchNotes,
-//     initialData: initialNotes,
-//   });
-
-//   if (isLoading) return <p>Loading, please wait...</p>;
-//   if (error)
-//     return <p>Could not fetch the list of notes. {(error as Error).message}</p>;
-
-//   return (
-//     <div>
-//       {data?.map((note) => (
-//         <div key={note.id}>
-//           <h3>{note.title}</h3>
-//           <p>{note.content}</p>
-//         </div>
-//       ))}
-//     </div>
-//   );
-// }
-
 "use client";
 
-import { useQuery, DehydratedState } from "@tanstack/react-query";
-import { fetchNotes, FetchNotesResponse } from "../../lib/api";
-import { Note } from "../../types/note";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchNotes } from "../../lib/api";
+import NoteList from "../../components/NoteList/NoteList";
+import NoteForm from "../../components/NoteForm/NoteForm";
+import SearchBox from "../../components/SearchBox/SearchBox";
+import Pagination from "../../components/Pagination/Pagination";
+import Modal from "../../components/Modal/Modal";
+import css from "./notes.module.css";
 
-interface NotesClientProps {
-  initialData: DehydratedState;
-}
+export default function NotesClient() {
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const perPage = 10;
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-export default function NotesClient({ initialData }: NotesClientProps) {
-  const initialNotes = initialData?.queries?.find(
-    (q) => q.queryKey[0] === "notes"
-  )?.state?.data as FetchNotesResponse | undefined;
-
-  const { data, isLoading, error } = useQuery<FetchNotesResponse>({
-    queryKey: ["notes"],
-    queryFn: fetchNotes,
-    initialData: initialNotes,
+  const {
+    data: notes = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["notes", search, page],
+    queryFn: () => fetchNotes(search, page, perPage),
   });
 
   if (isLoading) return <p>Loading, please wait...</p>;
-  if (error) return <p>Could not fetch notes.</p>;
+  if (error) return <p>Could not fetch the list of notes. {error.message}</p>;
+  if (notes.length === 0) return <p>No notes found.</p>;
 
-  // Безопасная проверка на массив
-  const notesArray = data?.data ?? [];
-
-  if (notesArray.length === 0) return <p>No notes found.</p>;
+  // Предполагаем, что API возвращает общее количество заметок в данных
+  // Если API не возвращает total, можно использовать локальный расчет или заглушку
+  const totalPages = Math.ceil(50 / perPage); // Замените 50 на реальное значение total, если API его возвращает
 
   return (
-    <div>
-      {notesArray.map((note: Note) => (
-        <div key={note.id}>
-          <h3>{note.title}</h3>
-          <p>{note.content}</p>
-        </div>
-      ))}
-    </div>
+    <main className={css.container}>
+      <h1>Notes</h1>
+      <div className={css.controls}>
+        <SearchBox value={search} onChange={setSearch} />
+        <button
+          className={css.createButton}
+          onClick={() => setIsModalOpen(true)}
+        >
+          Create Note
+        </button>
+      </div>
+      <NoteList notes={notes} />
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <NoteForm onClose={() => setIsModalOpen(false)} />
+        </Modal>
+      )}
+    </main>
   );
 }
