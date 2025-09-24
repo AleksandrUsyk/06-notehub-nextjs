@@ -1,3 +1,5 @@
+"use client";
+
 import { use } from "react";
 import NoteDetailsClient from "./NoteDetails.client";
 
@@ -9,8 +11,10 @@ export default function NoteDetailsPage({ params }: NoteDetailsPageProps) {
   // Разворачиваем Promise с помощью use()
   const { id } = use(params);
 
+  // Приводим к числу
   const noteId = Number(id);
-  if (isNaN(noteId)) return <p>Invalid note ID</p>;
+
+  if (!id || isNaN(noteId)) return <p>Invalid note ID</p>;
 
   return <NoteDetailsClient id={noteId} />;
 }
