@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
-import css from "./NotesPage.module.css"; // <- стили
+import css from "./NotesPage.module.css"; // <- твои стили
 
 export default function NotesClient() {
   const { data, isLoading, error } = useQuery({
@@ -16,16 +16,23 @@ export default function NotesClient() {
   if (!data || data.length === 0) return <p>No notes found.</p>;
 
   return (
-    <ul className={css.list}>
-      {data.map((note) => (
-        <li className={css.listItem} key={note.id}>
-          <h3 className={css.title}>{note.title}</h3>
-          <p className={css.content}>{note.content}</p>
-          <a className={css.link} href={`/notes/${note.id}`}>
-            View details
-          </a>
-        </li>
-      ))}
-    </ul>
+    <div className={css.app}>
+      <div className={css.toolbar}>
+        <h2>Notes</h2>
+        <button className={css.button} onClick={() => alert("Create note")}>
+          Create note
+        </button>
+      </div>
+
+      <ul>
+        {data.map((note) => (
+          <li key={note.id}>
+            <h3>{note.title}</h3>
+            <p>{note.content}</p>
+            <a href={`/notes/${note.id}`}>View details</a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
