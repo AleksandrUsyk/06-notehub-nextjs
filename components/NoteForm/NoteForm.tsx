@@ -1,9 +1,10 @@
+"use client";
+
 import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { createNoteApi } from "..//../lib/api";
-import type { NoteTag } from "../../types/note";
+import { createNote } from "../../lib/api";
 import css from "./NoteForm.module.css";
 
 interface NoteFormProps {
@@ -13,7 +14,7 @@ interface NoteFormProps {
 const NoteSchema = Yup.object().shape({
   title: Yup.string().min(3, "Min 3").max(50, "Max 50").required("Required"),
   content: Yup.string().max(500, "Max 500"),
-  tag: Yup.mixed<NoteTag>()
+  tag: Yup.string()
     .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"], "Invalid tag")
     .required("Tag is required"),
 });
@@ -23,8 +24,8 @@ export default function NoteForm({ onClose }: NoteFormProps) {
   const submitRef = useRef<HTMLButtonElement | null>(null);
 
   const mutation = useMutation({
-    mutationFn: (payload: { title: string; content?: string; tag: NoteTag }) =>
-      createNoteApi(payload),
+    mutationFn: (payload: { title: string; content: string; tag: string }) =>
+      createNote(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["notes"] });
       onClose();
@@ -35,12 +36,17 @@ export default function NoteForm({ onClose }: NoteFormProps) {
     <div>
       <h2>Create note</h2>
       <Formik
-        initialValues={{ title: "", content: "", tag: "Todo" as NoteTag }}
+        initialValues={{ title: "", content: "", tag: "Todo" }}
         validationSchema={NoteSchema}
         onSubmit={async (values, { setSubmitting }) => {
           setSubmitting(true);
           try {
-            await mutation.mutateAsync(values);
+            // Гарантируем, что content всегда строка
+            await mutation.mutateAsync({
+              title: values.title,
+              content: values.content || "",
+              tag: values.tag,
+            });
           } catch (err) {
             console.error(err);
             alert("Failed to create note");

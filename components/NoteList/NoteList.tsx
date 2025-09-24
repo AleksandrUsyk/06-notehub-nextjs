@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { deleteNoteApi } from "../../lib/api";
+import { deleteNote } from "../../lib/api";
 import { Note } from "../../types/note";
 import css from "./NoteList.module.css";
 
@@ -13,8 +13,9 @@ interface NoteListProps {
 export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
 
+  // mutationFn теперь принимает число, как и Note.id
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteNoteApi(id),
+    mutationFn: (id: number) => deleteNote(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
@@ -31,13 +32,13 @@ export default function NoteList({ notes }: NoteListProps) {
           <h2 className={css.title}>{note.title}</h2>
           <p className={css.content}>{note.content}</p>
           <div className={css.footer}>
-            <span className={css.tag}>{note.tag}</span>
+            {/* убрал note.tag, так как его нет в интерфейсе */}
             <Link href={`/notes/${note.id}`}>View details</Link>
             <button
               className={css.button}
               onClick={() => {
                 if (confirm("Delete this note?")) {
-                  deleteMutation.mutate(note.id);
+                  deleteMutation.mutate(note.id); // note.id — число
                 }
               }}
             >
