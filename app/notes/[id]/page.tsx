@@ -1,20 +1,30 @@
-"use client";
-
-import { use } from "react";
-import NoteDetailsClient from "./NoteDetails.client";
+import { dehydrate, QueryClient } from "@tanstack/react-query";
+import { fetchNoteById } from "@/lib/api";
+import NoteDetailsClient from "../[id]/NoteDetails.client";
 
 interface NoteDetailsPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string } | Promise<{ id: string }>;
 }
 
-export default function NoteDetailsPage({ params }: NoteDetailsPageProps) {
-  // Разворачиваем Promise с помощью use()
-  const { id } = use(params);
+export default async function NoteDetailsPage(props: NoteDetailsPageProps) {
+  const { params } = props;
 
-  // Приводим к числу
-  const noteId = Number(id);
+  // 🔹 Ждём params, если это Promise
+  const resolvedParams = params instanceof Promise ? await params : params;
 
-  if (!id || isNaN(noteId)) return <p>Invalid note ID</p>;
+  const noteId = Number(resolvedParams.id);
 
-  return <NoteDetailsClient id={noteId} />;
+  if (!resolvedParams.id || isNaN(noteId)) return <p>Invalid note ID</p>;
+
+  const queryClient = new QueryClient();
+
+  // 🔹 Prefetch для гидратации TanStack Query
+  await queryClient.prefetchQuery({
+    queryKey: ["note", noteId],
+    queryFn: () => fetchNoteById(noteId),
+  });
+
+  return (
+    <NoteDetailsClient id={noteId} dehydratedState={dehydrate(queryClient)} />
+  );
 }

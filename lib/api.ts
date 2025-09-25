@@ -9,20 +9,22 @@ const api = axios.create({
 });
 
 export async function fetchNotes(): Promise<Note[]> {
-  const { data } = await api.get("/notes");
-  return data.notes; // ✅ возвращаем массив Note[]
+  const { data } = await api.get<{ notes: Note[] }>("/notes");
+  return data.notes;
 }
 
 export async function fetchNoteById(id: number): Promise<Note> {
-  const { data } = await api.get(`/notes/${id}`);
+  const { data } = await api.get<Note>(`/notes/${id}`);
   return data;
 }
 
-export async function createNote(note: Omit<Note, "id" | "createdAt">) {
-  const { data } = await api.post("/notes", note);
+export async function createNote(
+  note: Omit<Note, "id" | "createdAt">
+): Promise<Note> {
+  const { data } = await api.post<Note>("/notes", note);
   return data;
 }
 
-export async function deleteNote(id: number) {
+export async function deleteNote(id: number): Promise<void> {
   await api.delete(`/notes/${id}`);
 }
