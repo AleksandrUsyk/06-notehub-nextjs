@@ -6,32 +6,29 @@ import {
   DehydratedState,
 } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
-import NoteForm from "../../components/NoteForm/NoteForm";
-import { useState } from "react";
 import css from "./NotesClient.module.css";
+
+interface Note {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+}
 
 interface NotesClientProps {
   dehydratedState?: DehydratedState | null;
 }
 
 export default function NotesClient({ dehydratedState }: NotesClientProps) {
-  const [showForm, setShowForm] = useState(false);
-
   return (
     <HydrationBoundary state={dehydratedState}>
-      <NotesContent showForm={showForm} setShowForm={setShowForm} />
+      <NotesInner />
     </HydrationBoundary>
   );
 }
 
-function NotesContent({
-  showForm,
-  setShowForm,
-}: {
-  showForm: boolean;
-  setShowForm: (val: boolean) => void;
-}) {
-  const { data, isLoading, error } = useQuery({
+function NotesInner() {
+  const { data, isLoading, error } = useQuery<Note[]>({
     queryKey: ["notes"],
     queryFn: fetchNotes,
   });
@@ -45,16 +42,12 @@ function NotesContent({
     <div className={css.app}>
       <div className={css.toolbar}>
         <h2>Notes</h2>
-        <button className={css.button} onClick={() => setShowForm(true)}>
-          Create note
-        </button>
+        <button onClick={() => alert("Open NoteForm")}>Create note</button>
       </div>
 
-      {showForm && <NoteForm onClose={() => setShowForm(false)} />}
-
-      <ul className={css.notesList}>
+      <ul>
         {data.map((note) => (
-          <li key={note.id} className={css.noteItem}>
+          <li key={note.id}>
             <h3>{note.title}</h3>
             <p>{note.content}</p>
             <a href={`/notes/${note.id}`}>View details</a>
