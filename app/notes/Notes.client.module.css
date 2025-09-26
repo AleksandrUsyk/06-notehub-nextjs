@@ -8,9 +8,9 @@
 
 .actions {
   display: flex;
-  justify-content: space-between; /* Поиск слева, кнопка справа */
-  align-items: flex-end; /* Опустить поиск чуть ниже */
-  margin-bottom: 24px; /* Отступ между toolbar и карточками */
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
   gap: 16px;
 }
 
@@ -30,9 +30,9 @@
 }
 
 .noteListWrapper {
-  margin-top: 16px; /* Отступ сверху для списка карточек */
+  margin-top: 16px;
 }
 
 .paginationWrapper {
-  margin-bottom: 16px; /* Отступ под пагинацией, чтобы карточки не прилипали */
+  margin-bottom: 16px;
 }

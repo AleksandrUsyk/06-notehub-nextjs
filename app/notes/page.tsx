@@ -5,7 +5,6 @@ import NotesClient from "./Notes.client";
 export default async function NotesPage() {
   const queryClient = new QueryClient();
 
-  // Предзагрузка данных первой страницы
   await queryClient.prefetchQuery({
     queryKey: ["notes", 1, ""],
     queryFn: () => fetchNotes({ page: 1, search: "" }),
@@ -21,7 +20,7 @@ export default async function NotesPage() {
       initialNotes={notesData?.notes || []}
       initialPage={1}
       totalPages={notesData?.totalPages || 1}
-      dehydratedState={dehydrate(queryClient) as DehydratedState} // приведение типа
+      dehydratedState={dehydrate(queryClient) as DehydratedState}
     />
   );
 }

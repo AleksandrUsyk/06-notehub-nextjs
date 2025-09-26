@@ -8,7 +8,6 @@ const api = axios.create({
   },
 });
 
-// Теперь возвращаем объект с notes и totalPages
 export async function fetchNotes(params?: {
   page?: number;
   search?: string;
@@ -16,7 +15,6 @@ export async function fetchNotes(params?: {
   const { page = 1, search = "" } = params || {};
   const { data } = await api.get("/notes", { params: { page, search } });
 
-  // Если API не отдаёт totalPages, ставим заглушку
   return {
     notes: data.notes,
     totalPages: data.totalPages ?? 1,

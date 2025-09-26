@@ -9,7 +9,6 @@ interface NoteDetailsPageProps {
 export default async function NoteDetailsPage({
   params,
 }: NoteDetailsPageProps) {
-  // Ждём Promise, если params передан как Promise
   const { id } = await params;
 
   const noteId = Number(id);
