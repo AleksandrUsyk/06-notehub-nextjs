@@ -8,9 +8,19 @@ const api = axios.create({
   },
 });
 
-export async function fetchNotes(): Promise<Note[]> {
-  const { data } = await api.get("/notes");
-  return data.notes;
+// Теперь возвращаем объект с notes и totalPages
+export async function fetchNotes(params?: {
+  page?: number;
+  search?: string;
+}): Promise<{ notes: Note[]; totalPages: number }> {
+  const { page = 1, search = "" } = params || {};
+  const { data } = await api.get("/notes", { params: { page, search } });
+
+  // Если API не отдаёт totalPages, ставим заглушку
+  return {
+    notes: data.notes,
+    totalPages: data.totalPages ?? 1,
+  };
 }
 
 export async function fetchNoteById(id: number): Promise<Note> {
@@ -19,8 +29,17 @@ export async function fetchNoteById(id: number): Promise<Note> {
 }
 
 export async function createNote(note: Omit<Note, "id" | "createdAt">) {
-  const { data } = await api.post("/notes", note);
-  return data;
+  try {
+    const { data } = await api.post("/notes", note);
+    return data;
+  } catch (err: any) {
+    if (err.response?.status === 429) {
+      throw new Error(
+        "Too many requests. Please wait a moment before trying again."
+      );
+    }
+    throw err;
+  }
 }
 
 export async function deleteNote(id: number) {

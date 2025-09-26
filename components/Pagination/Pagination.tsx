@@ -20,8 +20,12 @@ export default function Pagination({
         pageCount={totalPages}
         pageRangeDisplayed={5}
         marginPagesDisplayed={1}
-        onPageChange={({ selected }) => onPageChange(selected + 1)}
-        forcePage={currentPage - 1}
+        onPageChange={({ selected }) => {
+          const newPage = selected + 1;
+          if (newPage !== currentPage) {
+            onPageChange(newPage);
+          }
+        }}
         containerClassName={css.pagination}
         pageClassName={css.pageItem}
         pageLinkClassName={css.pageLink}

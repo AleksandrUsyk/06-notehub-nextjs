@@ -1,59 +1,76 @@
 "use client";
 
-import {
-  useQuery,
-  HydrationBoundary,
-  DehydratedState,
-} from "@tanstack/react-query";
-import { fetchNotes } from "@/lib/api";
-import css from "./NotesClient.module.css";
-
-interface Note {
-  id: number;
-  title: string;
-  content: string;
-  createdAt: string;
-}
+import { useState } from "react";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { fetchNotes } from "../../lib/api";
+import { Note } from "../../types/note";
+import SearchBox from "../../components/SearchBox/SearchBox";
+import NoteList from "../../components/NoteList/NoteList";
+import Pagination from "../../components/Pagination/Pagination";
+import Modal from "../../components/Modal/Modal";
+import NoteForm from "../../components/NoteForm/NoteForm";
+import { DehydratedState } from "@tanstack/react-query";
+import css from "./Notes.client.module.css";
 
 interface NotesClientProps {
-  dehydratedState?: DehydratedState | null;
+  initialNotes: Note[];
+  initialPage: number;
+  totalPages: number;
+  dehydratedState?: DehydratedState;
 }
 
-export default function NotesClient({ dehydratedState }: NotesClientProps) {
-  return (
-    <HydrationBoundary state={dehydratedState}>
-      <NotesInner />
-    </HydrationBoundary>
+interface NotesData {
+  notes: Note[];
+  totalPages: number;
+}
+
+export default function NotesClient({
+  initialNotes,
+  initialPage,
+  totalPages,
+}: NotesClientProps) {
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(initialPage);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { data, isLoading, error }: UseQueryResult<NotesData, Error> = useQuery(
+    {
+      queryKey: ["notes", page, search],
+      queryFn: () => fetchNotes({ page, search }),
+      initialData: { notes: initialNotes, totalPages },
+    }
   );
-}
 
-function NotesInner() {
-  const { data, isLoading, error } = useQuery<Note[]>({
-    queryKey: ["notes"],
-    queryFn: fetchNotes,
-  });
+  const notes = data?.notes || [];
+  const pages = data?.totalPages || 1;
 
-  if (isLoading) return <p>Loading, please wait...</p>;
-  if (error instanceof Error)
-    return <p>Could not fetch the list of notes. {error.message}</p>;
-  if (!data || data.length === 0) return <p>No notes found.</p>;
+  if (isLoading) return <p>Loading notes…</p>;
+  if (error) return <p>Something went wrong.</p>;
 
   return (
-    <div className={css.app}>
-      <div className={css.toolbar}>
-        <h2>Notes</h2>
-        <button onClick={() => alert("Open NoteForm")}>Create note</button>
+    <div className={css.wrapper}>
+      <div className={css.actions}>
+        <SearchBox value={search} onChange={setSearch} />
+        <button className={css.addButton} onClick={() => setIsModalOpen(true)}>
+          Create note +
+        </button>
       </div>
 
-      <ul>
-        {data.map((note) => (
-          <li key={note.id}>
-            <h3>{note.title}</h3>
-            <p>{note.content}</p>
-            <a href={`/notes/${note.id}`}>View details</a>
-          </li>
-        ))}
-      </ul>
+      <Pagination
+        currentPage={page}
+        totalPages={pages}
+        onPageChange={setPage}
+      />
+
+      <div className={css.noteListWrapper}>
+        <NoteList notes={notes} />
+      </div>
+
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <NoteForm onClose={() => setIsModalOpen(false)} />
+        </Modal>
+      )}
     </div>
   );
 }

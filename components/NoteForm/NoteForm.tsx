@@ -30,6 +30,9 @@ export default function NoteForm({ onClose }: NoteFormProps) {
       await queryClient.invalidateQueries({ queryKey: ["notes"] });
       onClose();
     },
+    onError: (err: any) => {
+      alert(err.message || "Failed to create note");
+    },
   });
 
   return (
@@ -41,7 +44,6 @@ export default function NoteForm({ onClose }: NoteFormProps) {
         onSubmit={async (values, { setSubmitting }) => {
           setSubmitting(true);
           try {
-            // Гарантируем, что content всегда строка
             await mutation.mutateAsync({
               title: values.title,
               content: values.content || "",
@@ -49,7 +51,6 @@ export default function NoteForm({ onClose }: NoteFormProps) {
             });
           } catch (err) {
             console.error(err);
-            alert("Failed to create note");
           } finally {
             setSubmitting(false);
           }
