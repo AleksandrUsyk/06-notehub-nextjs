@@ -32,19 +32,10 @@ export async function fetchNoteById(id: string): Promise<Note> {
 }
 
 export async function createNote(
-  note: Omit<Note, "id" | "createdAt">
+  note: Omit<Note, "id" | "createdAt" | "updatedAt">
 ): Promise<Note> {
-  try {
-    const { data } = await api.post<Note>("/notes", note);
-    return data;
-  } catch (err: any) {
-    if (err.response?.status === 429) {
-      throw new Error(
-        "Too many requests. Please wait a moment before trying again."
-      );
-    }
-    throw err;
-  }
+  const { data } = await api.post<Note>("/notes", note);
+  return data;
 }
 
 export async function deleteNote(id: string): Promise<Note> {
