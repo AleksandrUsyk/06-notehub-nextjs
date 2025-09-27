@@ -25,13 +25,15 @@ export default function NoteForm({ onClose }: NoteFormProps) {
 
   const mutation = useMutation({
     mutationFn: (payload: { title: string; content: string; tag: string }) =>
-      createNote(payload),
+      createNote({ ...payload, updatedAt: new Date().toISOString() }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["notes"] });
       onClose();
     },
-    onError: (err: any) => {
-      alert(err.message || "Failed to create note");
+    onError: (err: unknown) => {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to create note";
+      alert(errorMessage);
     },
   });
 

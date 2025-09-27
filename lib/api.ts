@@ -32,13 +32,33 @@ export async function fetchNoteById(id: string): Promise<Note> {
 }
 
 export async function createNote(
-  note: Omit<Note, "id" | "createdAt" | "updatedAt">
+  note: Omit<Note, "id" | "createdAt">
 ): Promise<Note> {
-  const { data } = await api.post<Note>("/notes", note);
-  return data;
+  try {
+    const { data } = await api.post<Note>("/notes", note);
+    return data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 429) {
+      throw new Error(
+        "Too many requests. Please wait a moment before trying again."
+      );
+    }
+    if (err instanceof Error) throw err;
+    throw new Error("An unknown error occurred while creating the note.");
+  }
 }
 
 export async function deleteNote(id: string): Promise<Note> {
-  const { data } = await api.delete<Note>(`/notes/${id}`);
-  return data;
+  try {
+    const { data } = await api.delete<Note>(`/notes/${id}`);
+    return data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 429) {
+      throw new Error(
+        "Too many requests. Please wait a moment before trying again."
+      );
+    }
+    if (err instanceof Error) throw err;
+    throw new Error("An unknown error occurred while deleting the note.");
+  }
 }
