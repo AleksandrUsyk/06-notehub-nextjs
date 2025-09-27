@@ -10,7 +10,6 @@ import Modal from "../../components/Modal/Modal";
 import NoteForm from "../../components/NoteForm/NoteForm";
 import css from "./Notes.client.module.css";
 
-// простий хук для debounce
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -26,8 +25,6 @@ export default function NotesClient() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // debounce для пошуку
   const debouncedSearch = useDebounce(search, 500);
 
   useEffect(() => {
