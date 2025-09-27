@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
-import { Note } from "@/types/note";
 import SearchBox from "../../components/SearchBox/SearchBox";
 import NoteList from "../../components/NoteList/NoteList";
 import Pagination from "../../components/Pagination/Pagination";
@@ -11,44 +10,41 @@ import Modal from "../../components/Modal/Modal";
 import NoteForm from "../../components/NoteForm/NoteForm";
 import css from "./Notes.client.module.css";
 
-interface NotesClientProps {
-  initialNotes: Note[];
-  initialPage: number;
-  totalPages: number;
+// простий хук для debounce
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
 }
 
-interface NotesData {
-  notes: Note[];
-  totalPages: number;
-}
-
-export default function NotesClient({
-  initialNotes,
-  initialPage,
-  totalPages,
-}: NotesClientProps) {
+export default function NotesClient() {
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(initialPage);
+  const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // debounce для пошуку
+  const debouncedSearch = useDebounce(search, 500);
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [debouncedSearch]);
 
-  const { data, isLoading, error }: UseQueryResult<NotesData, Error> = useQuery(
-    {
-      queryKey: ["notes", page, search],
-      queryFn: () => fetchNotes({ page, search }),
-      initialData: { notes: initialNotes, totalPages },
-      refetchOnWindowFocus: false,
-    }
-  );
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["notes", page, debouncedSearch],
+    queryFn: () => fetchNotes({ page, search: debouncedSearch }),
+    refetchOnWindowFocus: false,
+  });
 
-  const notes = data?.notes || [];
-  const pages = data?.totalPages || 1;
+  const notes = data?.notes ?? [];
+  const totalPages = data?.totalPages ?? 1;
 
   if (isLoading) return <p>Loading notes…</p>;
-  if (error) return <p>Something went wrong: {error.message}</p>;
+  if (error) return <p>Something went wrong: {(error as Error).message}</p>;
 
   return (
     <div className={css.wrapper}>
@@ -61,7 +57,7 @@ export default function NotesClient({
 
       <Pagination
         currentPage={page}
-        totalPages={pages}
+        totalPages={totalPages}
         onPageChange={setPage}
       />
 
