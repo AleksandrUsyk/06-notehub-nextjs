@@ -6,8 +6,7 @@ import { Note } from "@/types/note";
 import css from "./NoteDetails.module.css";
 
 interface NoteDetailsClientProps {
-  id: number;
-  dehydratedState?: unknown;
+  id: string;
 }
 
 export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
@@ -15,14 +14,14 @@ export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
     data: note,
     isLoading,
     error,
-  } = useQuery<Note>({
+  } = useQuery<Note, Error>({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
+    refetchOnMount: false,
   });
 
   if (isLoading) return <p>Loading, please wait...</p>;
-  if (error instanceof Error)
-    return <p>Could not fetch note. {error.message}</p>;
+  if (error) return <p>Could not fetch note. {error.message}</p>;
   if (!note) return <p>Note not found.</p>;
 
   return (

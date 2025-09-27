@@ -11,16 +11,13 @@ export default async function NoteDetailsPage({
 }: NoteDetailsPageProps) {
   const { id } = await params;
 
-  const noteId = Number(id);
-  if (isNaN(noteId)) return <p>Invalid note ID</p>;
+  if (!id) return <p>Invalid note ID</p>;
 
   const queryClient = new QueryClient();
   await queryClient.prefetchQuery({
-    queryKey: ["note", noteId],
-    queryFn: () => fetchNoteById(noteId),
+    queryKey: ["note", id],
+    queryFn: () => fetchNoteById(id),
   });
 
-  return (
-    <NoteDetailsClient id={noteId} dehydratedState={dehydrate(queryClient)} />
-  );
+  return <NoteDetailsClient id={id} />;
 }

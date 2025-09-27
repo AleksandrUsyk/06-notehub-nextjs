@@ -1,22 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { fetchNotes } from "../../lib/api";
-import { Note } from "../../types/note";
+import { fetchNotes } from "@/lib/api";
+import { Note } from "@/types/note";
 import SearchBox from "../../components/SearchBox/SearchBox";
 import NoteList from "../../components/NoteList/NoteList";
 import Pagination from "../../components/Pagination/Pagination";
 import Modal from "../../components/Modal/Modal";
 import NoteForm from "../../components/NoteForm/NoteForm";
-import { DehydratedState } from "@tanstack/react-query";
 import css from "./Notes.client.module.css";
 
 interface NotesClientProps {
   initialNotes: Note[];
   initialPage: number;
   totalPages: number;
-  dehydratedState?: DehydratedState;
 }
 
 interface NotesData {
@@ -33,11 +31,16 @@ export default function NotesClient({
   const [page, setPage] = useState(initialPage);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
   const { data, isLoading, error }: UseQueryResult<NotesData, Error> = useQuery(
     {
       queryKey: ["notes", page, search],
       queryFn: () => fetchNotes({ page, search }),
       initialData: { notes: initialNotes, totalPages },
+      refetchOnWindowFocus: false,
     }
   );
 
@@ -45,7 +48,7 @@ export default function NotesClient({
   const pages = data?.totalPages || 1;
 
   if (isLoading) return <p>Loading notes…</p>;
-  if (error) return <p>Something went wrong.</p>;
+  if (error) return <p>Something went wrong: {error.message}</p>;
 
   return (
     <div className={css.wrapper}>

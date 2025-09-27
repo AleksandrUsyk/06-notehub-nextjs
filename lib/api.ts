@@ -13,7 +13,12 @@ export async function fetchNotes(params?: {
   search?: string;
 }): Promise<{ notes: Note[]; totalPages: number }> {
   const { page = 1, search = "" } = params || {};
-  const { data } = await api.get("/notes", { params: { page, search } });
+  const { data } = await api.get<{ notes: Note[]; totalPages: number }>(
+    "/notes",
+    {
+      params: { page, search },
+    }
+  );
 
   return {
     notes: data.notes,
@@ -21,14 +26,16 @@ export async function fetchNotes(params?: {
   };
 }
 
-export async function fetchNoteById(id: number): Promise<Note> {
-  const { data } = await api.get(`/notes/${id}`);
+export async function fetchNoteById(id: string): Promise<Note> {
+  const { data } = await api.get<Note>(`/notes/${id}`);
   return data;
 }
 
-export async function createNote(note: Omit<Note, "id" | "createdAt">) {
+export async function createNote(
+  note: Omit<Note, "id" | "createdAt">
+): Promise<Note> {
   try {
-    const { data } = await api.post("/notes", note);
+    const { data } = await api.post<Note>("/notes", note);
     return data;
   } catch (err: any) {
     if (err.response?.status === 429) {
@@ -40,6 +47,7 @@ export async function createNote(note: Omit<Note, "id" | "createdAt">) {
   }
 }
 
-export async function deleteNote(id: number) {
-  await api.delete(`/notes/${id}`);
+export async function deleteNote(id: string): Promise<Note> {
+  const { data } = await api.delete<Note>(`/notes/${id}`);
+  return data;
 }
