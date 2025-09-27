@@ -8,6 +8,7 @@ const api = axios.create({
   },
 });
 
+// Получить список заметок с пагинацией и поиском
 export async function fetchNotes(params?: {
   page?: number;
   search?: string;
@@ -15,9 +16,7 @@ export async function fetchNotes(params?: {
   const { page = 1, search = "" } = params || {};
   const { data } = await api.get<{ notes: Note[]; totalPages: number }>(
     "/notes",
-    {
-      params: { page, search },
-    }
+    { params: { page, search } }
   );
 
   return {
@@ -26,18 +25,23 @@ export async function fetchNotes(params?: {
   };
 }
 
+// Получить одну заметку по ID
 export async function fetchNoteById(id: string): Promise<Note> {
   const { data } = await api.get<Note>(`/notes/${id}`);
   return data;
 }
 
+// Создать новую заметку
 export async function createNote(
-  note: Omit<Note, "id" | "createdAt">
+  note: Omit<Note, "id" | "createdAt" | "updatedAt">
 ): Promise<Note> {
   try {
     const { data } = await api.post<Note>("/notes", note);
     return data;
   } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 400) {
+      throw new Error("Bad request. Please check the data you are sending.");
+    }
     if (axios.isAxiosError(err) && err.response?.status === 429) {
       throw new Error(
         "Too many requests. Please wait a moment before trying again."
@@ -48,11 +52,15 @@ export async function createNote(
   }
 }
 
+// Удалить заметку по ID
 export async function deleteNote(id: string): Promise<Note> {
   try {
     const { data } = await api.delete<Note>(`/notes/${id}`);
     return data;
   } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 400) {
+      throw new Error("Bad request. Could not delete the note.");
+    }
     if (axios.isAxiosError(err) && err.response?.status === 429) {
       throw new Error(
         "Too many requests. Please wait a moment before trying again."

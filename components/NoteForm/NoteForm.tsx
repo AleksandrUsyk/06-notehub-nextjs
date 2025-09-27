@@ -7,14 +7,22 @@ import * as Yup from "yup";
 import { createNote } from "../../lib/api";
 import css from "./NoteForm.module.css";
 
+type NoteTag = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
+
 interface NoteFormProps {
   onClose: () => void;
+}
+
+interface NoteFormValues {
+  title: string;
+  content: string;
+  tag: NoteTag;
 }
 
 const NoteSchema = Yup.object().shape({
   title: Yup.string().min(3, "Min 3").max(50, "Max 50").required("Required"),
   content: Yup.string().max(500, "Max 500"),
-  tag: Yup.string()
+  tag: Yup.mixed<NoteTag>()
     .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"], "Invalid tag")
     .required("Tag is required"),
 });
@@ -24,23 +32,24 @@ export default function NoteForm({ onClose }: NoteFormProps) {
   const submitRef = useRef<HTMLButtonElement | null>(null);
 
   const mutation = useMutation({
-    mutationFn: (payload: { title: string; content: string; tag: string }) =>
-      createNote({ ...payload, updatedAt: new Date().toISOString() }),
+    mutationFn: (payload: NoteFormValues) => createNote(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["notes"] });
       onClose();
     },
     onError: (err: unknown) => {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to create note";
-      alert(errorMessage);
+      if (err instanceof Error) {
+        alert(err.message || "Failed to create note");
+      } else {
+        alert("Unknown error occurred.");
+      }
     },
   });
 
   return (
     <div>
       <h2>Create note</h2>
-      <Formik
+      <Formik<NoteFormValues>
         initialValues={{ title: "", content: "", tag: "Todo" }}
         validationSchema={NoteSchema}
         onSubmit={async (values, { setSubmitting }) => {
@@ -49,7 +58,7 @@ export default function NoteForm({ onClose }: NoteFormProps) {
             await mutation.mutateAsync({
               title: values.title,
               content: values.content || "",
-              tag: values.tag,
+              tag: values.tag, // уже типизировано как NoteTag
             });
           } catch (err) {
             console.error(err);
