@@ -58,7 +58,7 @@ export default function NoteForm({ onClose }: NoteFormProps) {
             await mutation.mutateAsync({
               title: values.title,
               content: values.content || "",
-              tag: values.tag, // уже типизировано как NoteTag
+              tag: values.tag,
             });
           } catch (err) {
             console.error(err);

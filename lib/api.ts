@@ -8,7 +8,6 @@ const api = axios.create({
   },
 });
 
-// Получить список заметок с пагинацией и поиском
 export async function fetchNotes(params?: {
   page?: number;
   search?: string;
@@ -25,13 +24,11 @@ export async function fetchNotes(params?: {
   };
 }
 
-// Получить одну заметку по ID
 export async function fetchNoteById(id: string): Promise<Note> {
   const { data } = await api.get<Note>(`/notes/${id}`);
   return data;
 }
 
-// Создать новую заметку
 export async function createNote(
   note: Omit<Note, "id" | "createdAt" | "updatedAt">
 ): Promise<Note> {
@@ -52,7 +49,6 @@ export async function createNote(
   }
 }
 
-// Удалить заметку по ID
 export async function deleteNote(id: string): Promise<Note> {
   try {
     const { data } = await api.delete<Note>(`/notes/${id}`);

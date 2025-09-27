@@ -7,7 +7,6 @@ const __dirname = dirname(__filename);
 
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
-// присваиваем каждому расширению массив
 const nextCore = compat.extends("next/core-web-vitals");
 const nextTs = compat.extends("next/typescript");
 const prettier = compat.extends("prettier");
