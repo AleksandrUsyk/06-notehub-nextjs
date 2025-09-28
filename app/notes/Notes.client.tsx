@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
 import SearchBox from "../../components/SearchBox/SearchBox";
 import NoteList from "../../components/NoteList/NoteList";
@@ -25,16 +25,18 @@ export default function NotesClient() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const debouncedSearch = useDebounce(search, 500);
 
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, isFetching } = useQuery({
     queryKey: ["notes", page, debouncedSearch],
     queryFn: () => fetchNotes({ page, search: debouncedSearch }),
     refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   });
 
   const notes = data?.notes ?? [];
@@ -60,6 +62,7 @@ export default function NotesClient() {
 
       <div className={css.noteListWrapper}>
         <NoteList notes={notes} />
+        {isFetching && <p className={css.loading}>Updating notes…</p>}
       </div>
 
       {isModalOpen && (
